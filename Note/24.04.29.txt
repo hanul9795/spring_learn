@@ -1,0 +1,90 @@
+OJDBC(Oracle Java Data Base Connectivity)
+Jsoup - Java로 html 파싱 등을 하는 툴
+
+라이브러리 추가방법
+	1. 사이트에서 다운로드
+	2. 프로젝트 안 lib 폴더에 복사
+	3. 빌드
+
+		단점: 프로젝트를 만들때마다 각 프로젝트에 라이브러리를 추가해야 한다
+		개선안: 프로젝트 외부 폴더를 만들어 그 폴더에 라이브러리 파일을 넣고 사용해야 할 때마다 파일 위치로 연결해서 빌드
+		개선안의 단점:  배포 시 파일 위치를 따로 연결을 해야한다.
+								
+		각 사이트에 저장되어 있는 라이브러리를 중앙저장소(파일 서버)로 저장한 뒤 프로젝트에 연결
+			- pom.xml 파일에 필요한 라이브러리를 기술 만! 해둠
+				프로젝트가 시작될 때 Maven(프로젝트 관리도구)가 중앙저장소에서 자동으로 프로젝트가 아닌
+				.m2 안에 repository 폴더를 만들고 그 안에 다운받은 뒤 자동으로 빌드까지 해줌
+					장점 - 	pom.xml이 있음으로 리눅스 등 다른 장치로 배포를 할 때 사용하는 장치에 Maven이 설치되어 있으면
+								자동으로 라이브러리를 다운받아 사용할 수 있게 됨
+								
+	
+Lombok - @(annotation) 사용으로 개발을 편리하게 해주는것
+	@Getter - get(변수이름 첫글자 대문자)() ex) getEmail();
+	@Setter - set(변수이름 첫글자 대문자)() ex) setEmail();
+	@Data = @Getter + @Setter
+	@AllArgsConstructor - 모든 필드를 다 쓰는 생성자 생성
+	@NoArgsConstructor - 빈 생성자
+	@RequiredArgsConstructor - final 붙은 변수에 대한 생성자 생성 final 없으면 안 만듬
+					
+	@Builder - 생성자 사용을 쉽게 해주는것
+		기존 생성자는 매개변수의 변화에 따라 각각 따로 생성자를 만들어야 하나 @Builder를 통해 하나의 생성자만 만들어도
+		매개변수의 개수를 신경쓰지 않아도 된다.
+		
+		ex) 만약
+					public class Member{
+						private int id;
+						private String username;
+						private String password;
+						private String email;
+						
+						@Builder
+						public Member(int id, String username, String password, String email) {
+							this.id = id;
+							this.username = username;
+							this.password = password;
+							this.email = email;
+						}
+					}
+					로 만들어져 있을 경우 Member m = Member.builder().id(122).username("ssar").password("1234").email("email").build();
+					혹은 중간에 id를 제외한 Member m = Member.builder().username("ssar").password("1234").email("email").build();
+					를 통해 생성자를 사용할 수 있다. 
+					빌더 장점 
+						1. 생성자의 순서를 지킬 필요가 없다
+						2. 생성자 순서를 틀림으로 생기는 문제 적어짐
+						
+						
+						
+ Xml - <metadata> <name> 1234 </name> </metadata> 닫힘 형태로 되어있어 용량이 큼
+ json - 키값이 " "로 닫혀있어 용량이 yaml보다 크다 
+ yaml - 키값: 값 - 키값과 값 사이는 '무조건 스페이스바 한번, 들여쓰기는 무조건 스페이스바 두번
+
+# 참조 - https://www.inflearn.com/questions/16184
+
+ web.xml, root-context.xml, servlet-context.xml 합본 - yml
+	SpringBoot에서는 구분 X
+		root-context - db설정처럼 한번만 new되고 다시 new 할 필요 없는 것들(싱글톤, 객체 1개만 있으면 되는 것들)
+		servlet-context - 지속적으로 new하여 객체가 여러개 필요한 것들
+		
+		port: 8000
+		context-path: /blog
+		로 하면
+		기존 localhost:8080/http/lombok은 localhost:8000/blog/http/lombok으로 접속해야만 접속이 가능하다
+		
+		
+
+@RestController - 스트링을 리턴하면 스트링 리턴
+@Controller - 스트링 리턴시 해당 경로에 있는 파일 리턴
+
+파일 리턴 기본 경로: src/main/resources/static
+		return "home.html" 상태 경로: src/main/resources/statichome.html
+		return "/home.html" 상태 경로: src/main/resources/static/home.html
+		
+spring에서 jsp사용하기 위한 방법
+	1. pom.xml에 jsp 의존성 설정
+	2. src/main에 webapp/WEB-INF/views 폴더를 생성 뒤 그곳에 .jsp 파일 저장
+	
+	jsp파일은 정적 파일(브라우저에서 인식하는 파일)이 아님으로 static 폴더에 저장할 수 없다 - 불라얼 수 없다 - 동적파일(컴파일이 필요한 파일)
+	yml 안 view 항목에서 prefix와 suffux 설정을 통해 불러올 수 있음
+	주의할 점 
+		리턴값으로 정적값처럼 /파일이름.jsp로 주게되면 prefix와 suffix를 통해 붙는 항목때문에 NewFile.jsp.jsp 혹은 /WEB-INF/views//NewFile.jsp이 되어 불러오지 못할 수 없다.
+		따라서 suffix와 prefix를 사용할 때 이것을 참조해야만 함

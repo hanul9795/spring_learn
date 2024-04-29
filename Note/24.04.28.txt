@@ -1,0 +1,176 @@
+MySql - Spring-test
+
+
+라이브러리 (의존성)	
+	
+	Spring Boot DevTools
+		자동 재시작 - 프로젝트에서 파일이 변경이 되었을 떄 자동 재시작
+	
+	Lombok
+		Getter, Setter, 생성자 만들기 번거로우니 Annotation으로 자동생성 해주는것
+		
+	Spring Data JPA
+		데이터베이스 JPA로 만들 때  ORM 사용하기위해 필요
+			-ORM: 객체와 관계형 데이터베이스의 데이터를 자동으로 매핑해주는것
+	
+	Spring Security
+		Spring 사용하여 개발할 때 많은 보안 관련 라이브러리 제공
+		
+	Spring Web
+		Spring할 때 annotation 많이 사용하는데 annotation 할 때 필요
+		내장형 컨테이너로 톰캣 기본탑재
+			톰캣 - 웹서버 프로그램
+		
+	pom.xml
+		의존성 파일 다운로드 관련 명령어 집합 포함
+	
+
+
+
+	
+		스프링 -> IoC(제어의 역전)
+			개발자 		new X
+			spring 	new O
+			
+			싱글톤  패턴 + 레퍼런스 변수를 spring이 관리
+				-> 지역변수로 new를 쓰면 다른곳에서 사용하기 힘드니 spring에서 관리하겠다라는 의미
+				
+			Spring Component Scan
+				어떤 패키지 이하를 전부 스캔해 필요한 것들을 메모리에 로드하는 것 - IoC (싱글톤 패턴)
+				스프링 컨테이너에 모든 객체에 대한 변수 관리 (기준: com.cos.blog)
+					만약 com.cos.test.로 만들면 com.cos.blog의 하위 패키지가 아님으로 스캔되지 않는다
+					따라서 새로운 패키지를 만들 때에는 com.cos.blog.test처럼 만들어야 한다.
+					
+		@Controller - 스프링이 com.cos.blog 패키지 이하를 스캔해서 모든 파일을 메모리에 new하는것 아님
+			특정 annotation이 붙어있는 클래스 파일들을 new해서(IoC) 스프링 컨테이너에 관리하겠다라는
+			
+		yml  
+			-json과 비슷한 데이터 타입 보유(비슷하게 생김)
+			-모든 spring에 대한 설정 가능
+			-properties는 클래스 내부 함수 부르듯이 사용 ex) spring.datasource.password = 1234; 
+			하지만 yml은 spring:  datasource:  password:방식으로 사용하여 같은 클래스 내 함수를 사용할 때 작성에 용이
+			
+			
+			
+			
+			
+			http 1.1
+				
+				A --> B (A Write)	요청(Request)
+				A <-- B (A Read)	응답(Response)
+				
+				(A는 클라이언트: 을)
+				(B는 서버: 갑(데이터 보유))
+				--> 뜻 (Byte Stream(8 bit))
+				
+				http 통신: 약속
+					1.1기준 통신방법 4가지 - 요청(Request)의 방법
+														SQL
+						Get: 	데이터를 요구 - Select
+						Post:	데이터 추가	- Insert
+						Put:		데이터 수정	- Update
+						Delete:데이터 삭제	- Delete
+						
+						ex) 	Get: 요청?회원정보
+								Post: 요청?ID=ssar&Pw=1234
+								
+			
+			
+			
+			Stateful - 연결이 지속되다 (ex 채팅)
+				소켓 통신 - 포트간 통신
+				서버와 여러 클라이언트간의 소켓통신시 서버에 부하가 높아 http는 이 방식 사용 x
+				-세션: 데이터를 응답해 줄 준비가 됨(근거: 인증이 됨)
+				
+			Stateless - 요청시마다 스트림을 연결해서 데이터를 주고받는 형식 
+				- 서버 부하 하락
+				-Http에서 사용하는 방식
+				-연결 후 연결이 바로 끊겨 세션이 끊김(전달 한번 한 뒤 바로 세션 만료)
+				-세션 유지가 어려움
+				
+				
+				
+				
+				
+				
+			http 요청시 같이 보내지는 것들
+				ex) Post 사진
+					실 사진명 my.jpeg
+					
+						헤더: Image/JPEG		데이터 설명
+						바디: my.jpeg 				실제 데이터
+						
+				바디에 보내는 데이터가 뭔지 적는 방식 : MIME 타입
+				구조:	type/subtype
+				ex)	text /plain, text /html, image /jpeg, audio /png
+						
+			http 통신 방식 - 패킷 스위칭
+			
+				서킷 스위칭 - 데이터(가나다라)를 (가나다라)로 전송
+					- 보낼 데이터를 한번에 전송
+					- 물리적으로 연결되어야해서 비용 높음
+					- 속도 빠름
+					- ex) A ----- B, C ----- B
+						
+						
+				패킷 스위칭 - 데이터(가나다라)를(가)(나)(다)(라)로 전송
+					- 기존 다른 클라이언트와 연결되어있는 스트림에 각 패킷을 얹혀서 전송
+						ex A와 B가 연결된 스트림에 C의 스트림이 붙어 C의 패킷이 B로 전송된다
+					- A가 보낸 패킷과 C가 보낸 패킷이 섞일 수 있다 
+					- B에서 받은 패킷을 조립해야 한다
+					- 통신이 덜 혼잡한 경로를 따라 전송된다
+					   따라서 A에서 보내진 패킷 1과 패킷 2가 보내지는 경로나 도착 순서가 다를 수 있다
+					- 모든 패킷에는 헤더가 붙어있다 (데이터 순서, 보낸 클라이언트 정보 등)
+					- 패킷의 실제 데이터는 바디라고 한다.
+					-ex) A ----- B
+							 C --/
+							 
+							 
+							 
+							 
+			
+				@RestController
+				사용자가 요청 -> 응답(데이터)
+				@Controller
+				사용자가 요청 -> 응답(HTML파일)
+				
+				http 405 error - Method Not allowed
+					인터넷 브라우저로는 get 요청만 가능하다.
+					
+				클래스 내 변수 private로 사용하는 이유
+					클래스 외부에서 클래스 내부 지역변수에 직접 접근하는 것은 객체지향에 맞지 않는다. 
+					getter, setter - 클래스 내 내부변수를 변경하고 사용하기 위한 함수들
+				
+				Get
+					쿼리 스트링 - url 주소에 미리 협의된 데이터를 파라미터를 통해 넘기는 것
+						-파라미터로 id와 username을 받을 때
+							@RequestParam int id, @RequestParam String username
+							혹은 Member m + (매소드 내 사용시) m.getId(), m.getUsername()
+						
+						-Member를 사용하면 @RequestParam은 모든 변수를 미리 선언해야하는데 반해 
+						  (Member 변수명).get(변수이름)()을 통해 사전 정의 없이 사용 가능
+						  
+						 -id=1&username=ssar&password=1234&email=ssar@nate.com를(쿼리 스트링)
+						 Member에 넣는 것을 Spring이 해줌
+					 
+					 Post
+						x-www-form-urlencoded
+							Post 요청 형식
+								<form>
+									<input type="">
+								</form>
+						
+						@RequestBody 
+							- String 변수를 받아올 때 사용시
+							- @RequestParam과 비슷한 역할
+							
+						raw = text/plain, application/json
+						
+						만약 Member m으로 하고 json이 아닌 text로 보내면 415 Unsupported Media Type 오류 발생
+						
+						MessageConverter(스프링부트) - 들어온 데이터 자동 파싱
+					 
+					
+				
+				
+				
