@@ -1,0 +1,87 @@
+테이블을 만들기 위해서 별도의 패키지를 생성한 뒤 테이블 이름으로 클래스 생성
+	ex) com.example.blog.model
+	
+@Id - Primary key로 사용한다고 선언
+@Entity - 작성된 클래스가 JPA가 시작될때 자동으로 MySQL에 테이블 생성
+@GeneratedValue(strategy = GenerationType.IDENTITY) 프로젝트에서 연결된 DB(oracle, MySQL등)의 넘버링 전략을 따라감 (실습때 사용하는 프로젝트에 연결된 DB는 MySQL)
+	넘버링 전략
+		ex)	Oracle - Sequence - 들어온 순서대로 숫자 배정
+				MySQL - auto_increment - DB에 null id값이 들어오면 들어왔을 때 id값 세팅 - DB 실행 전에는 id 값을 알 수 없음
+				
+use-new-id-generator-mappings 
+	false: JPA의 기본 넘버링 전략을 따르지 않음
+	true: JPA의 기본 넘버링 전략을 따름
+	
+@Column(nullable = false, length = 30)	
+	nullable - null값 사용 가능 여부
+	length - 최대 길이값
+
+@CreationTimestamp
+	시간을 자동으로 만들어 줌
+	
+@ColumnDefault(" 내용(int) ") or @ColumnDefault(" ' 내용(String) ' ")
+	
+role값을 만들 때는 Enum을 사용하게 하는것이 좋음
+	-managerrrrr같은 오타로 설정될 수 있기 때문에 Enum을 통해 도메인을 정하는 것이 좋음
+	-도메인: 범위 설정 
+		ex) 성별 도메인 - 남, 여
+		
+ddl-auto
+	create, update, null ...
+		create이면 테이블이 '존재해도' 새로 생성
+			기존에 있던 테이블 삭제됨
+			한번 실행한 뒤에는 update로 변경해줘야 함
+			
+hibernate.format_sql: true 
+	콘솔 창에서 DB 작동 명령어 출력 여부
+	
+
+	PhysicalNamingStrategyStandardImpl
+		변수명 그대로 테이블에 필드를 생성
+		ex) myEmail -> myEmail
+
+	SpringPhysicalNamingStrategy
+		대문자 ->_소문자
+		myEmail -> my_email
+
+6강 확인
+
+DB 생성시
+	create database 이름 character set utf8 default collate utf8_general-ci;
+
+@Lob 
+	대용량 데이터 사용시 사용
+
+섬머노트 라이브러리
+	String을 <html> 태그와 섞어 디자인하여 저장
+
+외래키(FK, Foreign Key)를 만들때 주의점
+	1. 자바는 오브젝트를 저장할 수 있으나 DB는 불가. 따라서 자바에서는 오브젝트로 생성한다
+	2. @JoinColumn(name = "저장할 필드명")을 통해 DB에 참조할 테이블의 @id값을 작성한 필드명으로 저장한다
+		ex) @JoinColumn(name = "userId") -> (DB) userId필드 생성 <- User의 id값 참조할
+	3. @ManyToOne, OneToOne, OneToMany가 있다
+		- (현재 객체가 참조할 테이블에서 사용되는 빈도)TO(참조할 테이블이 현재 테이블에서 사용되는 빈도)
+			ex)	여러개의 개시글은 한 사람에 의해 쓰일 수 있다 -> ManyToOne (when board 테이블에서 User를 참조할 때)
+					하나의 개시글에는 여러개의 댓글이 달릴 수 있다 -> OneToMany(when board 테이블에서 Reply를 참조할 때)
+			
+연관관계 주인 = FK를 가진 오브젝트
+	- private User userId로 만들면 Board를 select할 때 JPA가 Board와 User를 조인하라는 쿼리를 DB에 보내고 그 결과를 JPA가받음
+	따라서 Board가 User의 FK를 가지고 있음으로 Board가 연관관계의 주인 (ManyToOne일 때)
+	
+	-하지만 OneToMany일 때는 ManyToOne처럼 @JoinColumn(name="replyId')를 하면 reply column이 생성되면서 댓글이 달릴 때마다 
+	replyId를 board 테이블에 등록해야 하는데 두 개 이상의 댓글이 달리는 순간 도메인 무결성 제약조건에 위배된다 (원자값)
+		
+		-따라서 OneToMany인 경우 @OneToMany(mappedBy="오브젝트 이름")를 사용해 FK가 아니며 DB에 replyId column을 만들지 말라고 선언해야 한다
+			-조인을 통해 정보만 얻기 위해 사용. 외래키 x
+		
+		
+		ex	@OneToMany(mappedBy="board")
+				private List<Reply> reply -> Board 클래스 내에서
+			
+		이 때 mappedBy=""에 들어가는 값은 Reply 클래스 내에서 Board 오브젝트를 생성할 때 사용한 오브젝트 이름을 작성된
+			ex private Board board; <- 이 값
+			
+	(기본 세팅) @ManyToOne(fetch = FetchType.EAGER) -> 보드 테이블을 셀렉트하면 유저 테이터가 한건이니까 바로 조인하여 가져오겠다.(무조건 들고와라)
+	(기본 세팅) @OneToMany(mappedBy="",fetch = Fetch.Type.LAZY) -> 필요하면 가져오고 필요 없으면 가져오지 않겠다.
+			- 댓글 펼치기 등이 있을 때에는 EAGER일 필요 없지만 펼치기가 없으면 EAGER로 바꿔줘야 할 필요가 있다.
+	
