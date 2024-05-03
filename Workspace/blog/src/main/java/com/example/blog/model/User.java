@@ -4,9 +4,12 @@ import java.sql.Timestamp;
 
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicInsert;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -22,6 +25,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@DynamicInsert //insert시에 null 인 필드 제외
 public class User {
 	
 	@Id // Primary key
@@ -37,10 +41,12 @@ public class User {
 	@Column(nullable = false, length = 50)
 	private String email;
 	
-	@ColumnDefault(" 'user' ")
-	private String role; //Enum을 쓰는게 좋음 -도메인 범위를 정하는 것이 좋음
+	//DB는 RoleType이 없다 따라서 EnumType이 String란것을 알려줘야 한다
+	@Enumerated(EnumType.STRING)
+	//@ColumnDefault(" 'user' ")
+	private RoleType role; //Enum을 쓰는게 좋음 -도메인 범위를 정하는 것이 좋음 //ADMIN,USER
 	
 	@CreationTimestamp //시간 자동 입력
-	private Timestamp creatData;
+	private Timestamp createDate;
 	
 }

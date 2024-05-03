@@ -1,0 +1,91 @@
+json - (why, how to use?)
+	각 언어마다 사용하는 언어가 달라 통신시 사용되는 데이터 형식이 다를 수 있음으로 json파일을 통해 어느 언어에서나 공통적으로 사용할 수 있는 데이터 형식을 사용할 수 있음.
+	
+@ManyToMany 
+	두 개의 테이블의 중간 테이블을 만들어주는 것
+	단점
+
+http://localhost:8000/blog/dummy/join(요청)
+http의 body에 username, password, email 데이터를 가지고 (요청)
+	
+매개변수 사용할 때 변수명을 같게 하든가(String username), 다르게하려면 @ReauestParam("username") String u가 가능
+
+x-www-form-urlencoded
+	key=value&key=value 형식으로 데이터를 전달하는 것
+	
+incert실행시
+ insert 
+    into
+        User
+        (createDate, email, password, role, username) 
+    values
+        (?, ?, ?, ?, ?)
+	로 들어가는데 @ColumnDefault(" 'user' ")를 했음에도 role에 null 이 들어가는 이유는 이 어노테이션을 작동시키기 위해서는 vlaue가(createDate, email,pass,username)으로 들어가야 하는데 
+	저 안에 role이 들어가 null이 들어갔고 이로인해 sql에서 설정된 default 값이 들어가지지 않음(null이 들어왔기 때문)
+		따라서 User.jave 상단에 @DynamicInsert를 통해 null값을 제외시켜줘야 한다
+		
+Select 하는 법
+	1. 모든 정보 가져오기
+		public List<User> list(){
+		return userRepository.findAll();
+	2. 페이징하여 가져오기
+		public List<User> pageList(@PageableDefault(size=2,sort="id",direction=Sort.Direction.DESC) Pageable pageable){
+		Page<User> pagingUser = userRepository.findAll(pageable); //List->Page, .getContent()삭제
+		
+		if(pagingUser.isLast()) {}
+		List<User> users = pagingUser.getContent();
+		return users; 
+		}
+			
+		3.예외처리 포함 데이터 1개 가져오기
+			@GetMapping("/dummy/user/{id}")
+			public User detail(@PathVariable int id) {
+				User user = userRepository.findById(id).orElseThrow(new Supplier<IllegalArgumentException>() {
+					@Override
+					public IllegalArgumentException get() {
+					return new IllegalArgumentException("해당 유저는 없습니다. id : " + id);}
+				});
+				return user;
+			}		
+			
+			3번 설명: 웹 브라우저는 자바의 오브젝트를 인식할 수 없다. 따라서 스프링부트 내 MessageConverter가 
+			자바 오브젝트를 웹 브라우저가 인식할 수 있는 json 형식으로 변환하여 전달한다. (자바 오브젝트 리턴시 MessageConverter -> Jackson 라이브러리 호출
+			
+			3번을 람다식으로 표현하면 아래와 같다:
+				User user = userRepository.findById(id).orElseThrow(()->{
+					return new IllegalArgumentException("해당 사용자는 없습니다.");});
+					
+		예외처리 방식
+			1. 노빠꾸 .get() user/4를 찾으면 만약에 db에서 못팢으면 user가 null이 됨 그렇게 되면 return null이 되면 프로그램에 문제가 생김 !오류
+			2. findById(id).orElseGet(new Supplier<User>(){@Override public User Get(){}}; -> 빈 오브젝트 생성 후 리턴
+			3. .orElseThrow(new Supplier<IllegalArgumentException>() {@Overridepublic IllegalArgumentException get() {return new IllegalArgumentException("해당 유저는 없습니다. id : " + id);}}); -> exception 오브젝트 리턴
+	
+Update
+	방식 
+		1. userRepository.save(user);
+			특징: incert때도 사용됨. id값이 주어지지 않거나 해당 id가 없으면 incert, id값에 해당하는 튜플이 있으면 update하는 특징을 가짐
+			단점: 주어진 정보 외에는 모두 NULL값으로 바꿔버림. ex)애트리뷰트가 5개고 save할 객체 내 애트리뷰트가 3개면 3개를 제외한 나머지 2개는 null값으로 update하는
+		2. @Transactional
+			특징: 어노테이션으로 변경, 더티체킹. db에 저장된 user값을 가져와 수정
+			
+ 영속화 컨텍스트와 더티체킹
+	 영속화 컨텍스트 내 1차 캐시에 DB 정보를 가져옴(영속화)
+	 컨테이너안에 명령어들
+	 
+	 영속화되는 위치 User user = userRepository.findById(id).orElseThrow(()->{return new IllegalArgumentException("수정에 실패하였습니다.");});
+			 
+	 save사용하는 update 순서
+		1. DB 테이블에서 조건에 맞는 결과를 영속화 컨텍스트 안 1차 캐시에 캐싱함(영속화)
+		2. 영속화된 데이터를 컨테이너로 복사
+		3. 컨테이너에서 '복사된 데이터'를 조작
+		4. 조작된(변경된) 데이터와 영속화된 데이터와 비교
+		5. ID가 일치하면 컨테이너에서 온 데이터와 영속화된 데이터를 비교한 뒤 달라진 점만 영속화된 데이터에 update
+		6. 영속화된 데이터를 DB로 flush(push)
+	
+	@Transactional 사용하는 update 순서
+		1. DB 테이블에서 조건에 맞는 결과를 영속화 컨텍스트 안 1차 캐시에 캐싱함(영속화)
+		2. 영속화된 데이터를 컨테이너로 복사
+		3. 컨테이너에서 '복사된 데이터'를 조작
+		4. 함수가 종료되면 자동으로 commit함
+		5. 변경이 감지되면 DB로 수정요청을 보낸다 (더티체킹
+	
