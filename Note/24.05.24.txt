@@ -1,0 +1,40 @@
+데이터베이스 더티 체킹 
+	커밋해야 하는 것들을 모와놨다가 한꺼번에 커밋하는 것
+	
+jpa 더티체킹
+	변경 감지
+	
+delete시 주의점
+	영상과 다르게 최신 업데이트로 인해 존재하지 않는 값을 delete할 때 오류가 발생하지 않는다. 따라서 존재 여부 검증을 한번 따로 해 줘야 한다.
+
+Json 통신
+
+get
+	URL에 추가에서 하는것
+	ex
+		http://localhost:8000/blog/user?username=ssar
+		튿징: body로 데이터를 담아 보내지 않음
+		
+Post, Put, Delete 요청 ( 데이터 변경)
+	데이터를 담아 보내야 할 것이 많음
+	form 태그 method="Post"
+		get요청과 post 요청만 가능	(key = value) 형식으로 옴
+		Put과 Delete 요청은	자바 스크립트로 해야 함 
+		
+	통일: 자바스크립트로 ajax요청 + 데이터는 json으로 통일
+	
+	form:form 태그는 post, put, delete, get 요청 가능 - 사용 x
+	
+	스프링 컨트롤러는  key=value값을 자동으로 파싱하여 변수에 담아준다
+	스프링 컨트롤러는  key=value값을 자동으로 오브젝트로 파싱하기도 하는데 setter가 없다면 파싱해 줄 수 없다.
+
+오브젝트로 데이터 받기
+	post 방식의 key=value ( x-www-form-urlencoded)
+	받은 key값과 변수명이 동일해야 파싱 가능, 다르면 파싱 안됨
+	오브젝트 내 변수가 3개이고 2개만 받아도 파싱 가능. 하지만 매개변수가 4개면 오류 발생(setter가 없기 때문) - spring에서 자동으로 걸러줘서 오류 x
+		-추가 : setter가 하나도 선언되어 있지 않으면 오류 발생
+	
+	key=value가 아닌 경우 (ex:json)
+	@RequestBody로 받아야 한다.
+	
+	

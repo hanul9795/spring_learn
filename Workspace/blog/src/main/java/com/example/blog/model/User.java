@@ -18,7 +18,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 //orm -> Java(혹은 다른언어)object -> 테이블로 매핑해주는 기술
 @Entity //User클래스가 MySQL에 자동으로 테이블로 생성된다
 @Data
@@ -32,7 +31,7 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.IDENTITY) //프로젝트에서 연결된 DB의 넘버링 전략을 따라간다 - 
 	private int id; //오라클: 시퀀스, MYSQL: auto_increment - 기본키
 	
-	@Column(nullable = false, length = 30) //nullable = null값 사용 가능 여부, length = 최대 길이
+	@Column(nullable = false, length = 30, unique = true) //nullable = null값 사용 가능 여부, length = 최대 길이
 	private String username; // 아이디
 	
 	@Column(nullable = false, length = 100)

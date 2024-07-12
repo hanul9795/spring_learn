@@ -8,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,6 +33,18 @@ public class DummyControllerTest {
 	//save = id 전달하고 해당 id 데이터가 있으면 update하주고
 	//save = id 전달하고 해당 id 데이터가 없으면 incert한다
 	
+	@DeleteMapping("/dummy/user/{id}")
+	public String delete(@PathVariable int id) {
+		
+		User user = userRepository.findById(id).orElseThrow(new Supplier<IllegalArgumentException>() {
+			@Override
+			public IllegalArgumentException get() {
+			return new IllegalArgumentException("삭제에 실패했습니다. 해당 id는 존재하지 않습니다. id : " + id);}
+		}); // 최신 업데이트로 인해 존재하지 않는 id를 삭제하려 할 때 오류가 발생되지 않기 때문에 한번 검색해서 존재 여부를 판단해줘야 한다.
+		
+		userRepository.deleteById(id);
+		return "삭제 되었습니다. id: " + id;
+	}
 	
 	@Transactional //save없어도 저장이 된다 - 함수 종료시 자동 commit이 된다
 	@PutMapping("dummy/user/{id}") //Put과 Get다르면 상관x
@@ -48,7 +61,7 @@ public class DummyControllerTest {
 		//userRepository.save(user); //incert때 사용 하지만 다른 값들이 null로 변환됨으로 사용 잘 안함
 		
 		//더티 체킹 - 
-		return null;
+		return user;
 	}
 	@GetMapping("/dummy/user")
 	public List<User> list(){
